@@ -11,11 +11,11 @@ function LocationViewModel() {
 
   self.openInfo = function(loc){
     populateInfoWindow(loc.marker, largeInfowindow);
-  }
+  };
   self.updateMarkers = function(locs){
     if(map){
       var defaultIcon = makeMarkerIcon('0091ff');
-      largeInfowindow = new google.maps.InfoWindow()
+      largeInfowindow = new google.maps.InfoWindow();
       //markers[i].setMap(null);
       if(self.markers.length>0){
         self.markers.forEach(function(marker){
@@ -51,20 +51,20 @@ function LocationViewModel() {
         i++;
       });
     }  
-  }
+  };
   self.filteredLocations = ko.computed(function() {
-      var locs=[]
-        if(!self.currentFilter()) {
-            locs = self.locations(); 
-        } else {
-            locs = ko.utils.arrayFilter(self.locations(), function(loc) {
-              return loc.name.toLowerCase().indexOf(self.currentFilter().toLowerCase())!==-1;
-            });
-        }
-        if(self.markers.length>0){
-          self.updateMarkers(locs);
-        }
-        return locs;
+      var locs=[];
+      if(!self.currentFilter()) {
+        locs = self.locations(); 
+      } else {
+        locs = ko.utils.arrayFilter(self.locations(), function(loc) {
+          return loc.name.toLowerCase().indexOf(self.currentFilter().toLowerCase())!==-1;
+        });
+      }
+      if(self.markers.length>0){
+        self.updateMarkers(locs);
+      }
+      return locs;
   });
 	$.ajax({
     url: fsquareUrl,

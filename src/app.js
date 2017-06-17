@@ -1,22 +1,33 @@
 function Location(locItem){
-	this.name = ko.observable(locItem.name);
-	this.lat = ko.observable(locItem.lat);
-	this.lng = ko.observable(locItem.lng);
+  this.name = ko.observable(locItem.name);
+  this.lat = ko.observable(locItem.lat);
+  this.lng = ko.observable(locItem.lng);
+  this.id =  ko.observable(locItem.id);
+  this.detailData = null;
+}
+function toggleMarkerBounce(marker){
+  if (marker.getAnimation() !== null) {
+            marker.setAnimation(null);
+          }
+          marker.setAnimation(google.maps.Animation.BOUNCE);
+          window.setTimeout(function() {
+             marker.setAnimation(null);
+          }, 2000);
 }
 function LocationViewModel() {
-	var self=this;
-	self.locations = ko.observableArray([]);
+  var self=this;
+  self.locations = ko.observableArray([]);
   self.currentFilter = ko.observable();
   self.markers = [];
 
   self.openInfo = function(loc){
-    populateInfoWindow(loc.marker, largeInfowindow);
+    populateInfoWindow(loc.marker, largeInfowindow, loc);
+    toggleMarkerBounce(loc.marker);
   };
   self.updateMarkers = function(locs){
     if(map){
       var defaultIcon = makeMarkerIcon('0091ff');
       largeInfowindow = new google.maps.InfoWindow();
-      //markers[i].setMap(null);
       if(self.markers.length>0){
         self.markers.forEach(function(marker){
           marker.setMap(null);
@@ -27,7 +38,7 @@ function LocationViewModel() {
       locs.forEach(function(loc){
         var position = {lat: loc.lat, lng: loc.lng};
         var title = loc.name;
-            // Create a marker per location, and put into markers array.
+        // Create a marker per location, and put into markers array.
         var marker = new google.maps.Marker({
           position: position,
           title: title,
@@ -36,35 +47,35 @@ function LocationViewModel() {
           id: i
         });
         marker.addListener('click', function() {
-              populateInfoWindow(this, largeInfowindow);
-            });
+          populateInfoWindow(this, largeInfowindow, loc);
+          toggleMarkerBounce(this);
+        });
         loc.marker=marker;
         self.markers.push(marker);
         var bounds = new google.maps.LatLngBounds();
         // Extend the boundaries of the map for each marker and display the marker
         for (var i = 0; i < self.markers.length; i++) {
-            self.markers[i].setMap(map);
-            bounds.extend(self.markers[i].position);
+          self.markers[i].setMap(map);
+          bounds.extend(self.markers[i].position);
         }
-
         map.fitBounds(bounds);
         i++;
       });
-    }  
+    }
   };
   self.filteredLocations = ko.computed(function() {
-      var locs=[];
-      if(!self.currentFilter()) {
-        locs = self.locations(); 
-      } else {
-        locs = ko.utils.arrayFilter(self.locations(), function(loc) {
-          return loc.name.toLowerCase().indexOf(self.currentFilter().toLowerCase())!==-1;
-        });
-      }
-      if(self.markers.length>0){
-        self.updateMarkers(locs);
-      }
-      return locs;
+    var locs=[];
+    if(!self.currentFilter()) {
+      locs = self.locations(); 
+    } else {
+      locs = ko.utils.arrayFilter(self.locations(), function(loc) {
+        return loc.name.toLowerCase().indexOf(self.currentFilter().toLowerCase())!==-1;
+      });
+    }
+    if(self.markers.length>0){
+      self.updateMarkers(locs);
+    }
+    return locs;
   });
 	$.ajax({
     url: fsquareUrl,
@@ -73,14 +84,13 @@ function LocationViewModel() {
         return { 
           name : v.name, 
           lat : v.location.lat, 
-          lng : v.location.lng
-          //, category: v.categories[0] 
+          lng : v.location.lng,
+          id: v.id
         };
       });
       self.locations(ret);
-
       self.updateMarkers(self.locations());
-	  //aggiungere dati a mappa    
+    // aggiungere dati a mappa    
     },
     error : function(err){
       alert(err);

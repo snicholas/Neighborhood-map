@@ -109,7 +109,7 @@ function LocationViewModel() {
     // aggiungere dati a mappa    
     },
     error : function(err){
-      alert("There was an error calling the FourSquareApi.")
+      alert("There was an error calling the FourSquareApi.");
     }
   });
 }

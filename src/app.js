@@ -1,23 +1,23 @@
 function Location(locItem){
-  this.name = ko.observable(locItem.name);
-  this.lat = ko.observable(locItem.lat);
-  this.lng = ko.observable(locItem.lng);
-  this.id =  ko.observable(locItem.id);
+  this.name = locItem.name;
+  this.lat = locItem.lat;
+  this.lng = locItem.lng;
+  this.id =  locItem.id;
   this.detailData = null;
 }
 function toggleMarkerBounce(marker){
   if (marker.getAnimation() !== null) {
-            marker.setAnimation(null);
-          }
-          marker.setAnimation(google.maps.Animation.BOUNCE);
-          window.setTimeout(function() {
-             marker.setAnimation(null);
-          }, 2000);
+    marker.setAnimation(null);
+  }
+  marker.setAnimation(google.maps.Animation.BOUNCE);
+  window.setTimeout(function() {
+    marker.setAnimation(null);
+  }, 2000);
 }
 function LocationViewModel() {
   var self=this;
   self.locations = ko.observableArray([]);
-  self.currentFilter = ko.observable();
+  self.currentFilter = ko.observable('');
   self.markers = [];
 
   self.openInfo = function(loc){
@@ -30,37 +30,48 @@ function LocationViewModel() {
       largeInfowindow = new google.maps.InfoWindow();
       if(self.markers.length>0){
         self.markers.forEach(function(marker){
-          marker.setMap(null);
+          var locMarker = $.grep(locs, function(l){ return l.id == marker.id; });
+          if(locMarker && locMarker.length > 0){
+            marker.setVisible(true);
+          } else {
+            marker.setVisible(false);
+          }
+          
+        });
+      } else {
+        self.markers = [];
+        var i = 0;
+        var bounds = new google.maps.LatLngBounds();
+        locs.forEach(function(loc){
+          var position = {lat: loc.lat, lng: loc.lng};
+          var title = loc.name;
+          // Create a marker per location, and put into markers array.
+          var marker = new google.maps.Marker({
+            position: position,
+            title: title,
+            animation: google.maps.Animation.DROP,
+            icon: defaultIcon,
+            id: loc.id
+          });
+          marker.addListener('click', function() {
+            populateInfoWindow(this, largeInfowindow, loc);
+            toggleMarkerBounce(this);
+          });
+          loc.marker=marker;
+          self.markers.push(marker);
+          
+          // Extend the boundaries of the map for each marker and display the marker
+          for (var i = 0; i < self.markers.length; i++) {
+            self.markers[i].setMap(map);
+            bounds.extend(self.markers[i].position);
+          }
+          map.fitBounds(bounds);
+          i++;
+        });
+        google.maps.event.addDomListener(window, 'resize', function() {
+          map.fitBounds(bounds);
         });
       }
-      self.markers = [];
-      var i = 0;
-      locs.forEach(function(loc){
-        var position = {lat: loc.lat, lng: loc.lng};
-        var title = loc.name;
-        // Create a marker per location, and put into markers array.
-        var marker = new google.maps.Marker({
-          position: position,
-          title: title,
-          animation: google.maps.Animation.DROP,
-          icon: defaultIcon,
-          id: i
-        });
-        marker.addListener('click', function() {
-          populateInfoWindow(this, largeInfowindow, loc);
-          toggleMarkerBounce(this);
-        });
-        loc.marker=marker;
-        self.markers.push(marker);
-        var bounds = new google.maps.LatLngBounds();
-        // Extend the boundaries of the map for each marker and display the marker
-        for (var i = 0; i < self.markers.length; i++) {
-          self.markers[i].setMap(map);
-          bounds.extend(self.markers[i].position);
-        }
-        map.fitBounds(bounds);
-        i++;
-      });
     }
   };
   self.filteredLocations = ko.computed(function() {
@@ -93,7 +104,7 @@ function LocationViewModel() {
     // aggiungere dati a mappa    
     },
     error : function(err){
-      alert(err);
+      console.log(err);
     }
   });
 }

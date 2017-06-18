@@ -1,18 +1,18 @@
 var map;
-var gm_authDone = true;
+var gm_loadOk = true;
 var vareseLL={lat: 45.8197693, lng: 8.8256275};
 function mapsError(){
-  alert('aaa');
+  gm_loadOk = false;
 }
 function gm_authFailure() { 
   console.log("gm_authFailure error");
-  gm_authDone = false
+  gm_loadOk = false;
 };
 function initMap() {
   // styles array for icons, color, ecc...
   var styles = [];
   // Create the map centered on Varese, Lombardia, Italy
-  if(gm_authDone){
+  if(gm_loadOk){
     try{
       map = new google.maps.Map(document.getElementById('map'), {
         center: vareseLL,
@@ -35,7 +35,8 @@ function makeMarkerIcon(markerColor) {
     new google.maps.Size(21, 34),
     new google.maps.Point(0, 0),
     new google.maps.Point(10, 34),
-    new google.maps.Size(21,34));
+    new google.maps.Size(21,34)
+  );
   return markerImage;
 }
 var largeInfowindow;
@@ -60,11 +61,40 @@ function populateInfoWindow(marker, infowindow, locData) {
             contact : response.response.venue.contact ? response.response.venue.contact : " - ",
             rating : response.response.venue.rating ? response.response.venue.rating : " - "
           };
-          infowindow.setContent(
-            'FourSquare Rating: '+ locData.detailData.rating + "<br>" +
-            'FourSquare Contacts (Phone): ' + 
-            (locData.detailData.contact.formattedPhone ? locData.detailData.contact.formattedPhone : " - ")
-          );
+          var fsquareData = '<div>FourSquare Rating: '+ 
+              locData.detailData.rating + "<br>" +
+              'FourSquare Contacts (Phone): ' + 
+              (locData.detailData.contact.formattedPhone ? locData.detailData.contact.formattedPhone : " - ")
+              +'</div>';
+          var streetViewService = new google.maps.StreetViewService();
+          var radius = 50;
+          // In case the status is OK, which means the pano was found, compute the
+          // position of the streetview image, then calculate the heading, then get a
+          // panorama from that and set the options
+          function getStreetView(data, status) {
+            if (status == google.maps.StreetViewStatus.OK) {
+              var nearStreetViewLocation = data.location.latLng;
+              var heading = google.maps.geometry.spherical.computeHeading(
+                nearStreetViewLocation, marker.position);
+                infowindow.setContent(fsquareData + '<div>' + marker.title + '</div><div id="pano"></div>');
+                var panoramaOptions = {
+                  position: nearStreetViewLocation,
+                  pov: {
+                    heading: heading,
+                    pitch: 30
+                  }
+                };
+                var panorama = new google.maps.StreetViewPanorama(
+                  document.getElementById('pano'), panoramaOptions);
+             } else {
+              infowindow.setContent(fsquareData + '<div>' + marker.title + '</div>' +
+                '<div>No Street View Found</div>');
+             }
+           }
+           // Use streetview service to get the closest streetview image within
+           // 50 meters of the markers position
+           streetViewService.getPanoramaByLocation(marker.position, radius, getStreetView);
+          
         },
         error : function(err){
           alert(err);

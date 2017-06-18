@@ -10,9 +10,13 @@ function toggleMarkerBounce(marker){
     marker.setAnimation(null);
   }
   marker.setAnimation(google.maps.Animation.BOUNCE);
+  map.setCenter(marker.getPosition());
+  window.setTimeout(function() {
+    map.panTo(marker.getPosition());
+  }, 1000);
   window.setTimeout(function() {
     marker.setAnimation(null);
-  }, 2000);
+  }, 2100);
 }
 function LocationViewModel() {
   var self=this;
@@ -57,6 +61,7 @@ function LocationViewModel() {
             populateInfoWindow(this, largeInfowindow, loc);
             toggleMarkerBounce(this);
           });
+          
           loc.marker=marker;
           self.markers.push(marker);
           
@@ -104,7 +109,7 @@ function LocationViewModel() {
     // aggiungere dati a mappa    
     },
     error : function(err){
-      console.log(err);
+      alert("There was an error calling the FourSquareApi.")
     }
   });
 }

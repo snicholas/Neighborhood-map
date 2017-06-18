@@ -19,13 +19,13 @@
   <h2 id="nomap" style="display:none">Map unavailable</h2>
   <div id="wrapper">
     <!-- Sidebar -->
-    <div id="sidebar-wrapper">
+    <aside id="sidebar-wrapper">
       <input data-bind="textInput: currentFilter" type="text" placeholder="filter" autofocus>
       <ul class="nav"  id="sidebar" role="navigation" data-bind="foreach: filteredLocations">
         <li class="poi" data-bind="text: name,click: $root.openInfo"></li>
       </ul>
-    </div>
-    <div id="page-content-wrapper">
+    </aside>
+    <main id="page-content-wrapper">
       <div class="container-fluid">
         <div id="map" class="mapContainer"></div>
         <h3 class="appTitle">Neighborhood map</h3>
@@ -35,7 +35,7 @@
           <span class="icon-bar"></span>
         </button>
       </div>
-    </div>
+    </main>
   </div>
   <script
     src="https://code.jquery.com/jquery-1.12.4.min.js"

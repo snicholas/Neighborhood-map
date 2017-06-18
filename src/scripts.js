@@ -3,11 +3,10 @@ var gm_loadOk = true;
 var vareseLL={lat: 45.8197693, lng: 8.8256275};
 function mapsError(){
   gm_loadOk = false;
+  $('#wrapper').hide();
+  $('#nomap').show();
 }
-function gm_authFailure() { 
-  console.log("gm_authFailure error");
-  gm_loadOk = false;
-};
+
 function initMap() {
   // styles array for icons, color, ecc...
   var styles = [];
